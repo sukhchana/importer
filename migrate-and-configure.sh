@@ -123,6 +123,13 @@ DESTINATION_AUTH_URL=$(construct_auth_url "$DESTINATION_REPO" "$DESTINATION_PAT"
 git remote set-url origin "$DESTINATION_AUTH_URL"
 echo "   ✓ Remote origin updated to destination repository"
 
+# If the branch is 'main', rename it to 'main_test' before pushing
+if [ "$BRANCH" = "main" ]; then
+    echo "   Branch is 'main', renaming to 'main_test' before push."
+    git branch -m main_test
+    BRANCH="main_test"
+fi
+
 echo "7. Listing git remote origin before pushing..."
 git remote -v
 
