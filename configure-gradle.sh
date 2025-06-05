@@ -125,10 +125,10 @@ add_property_if_missing "conventionPluginVersion" "9.1.1" "$temp_props"
 
 mv "$temp_props" gradle.properties
 
-# 5. Update repositories in all build.gradle files
+# 5. Update repositories in all build.gradle files except the root
 echo "5. Updating repositories in build.gradle files..."
 REPO_BLOCK="$ARTIFACTORY_REPO_CONFIG"
-find . -name "build.gradle" -type f | while read -r build_file; do
+find . -name "build.gradle" -type f ! -path "./build.gradle" | while read -r build_file; do
     echo "   Processing: $build_file"
     # Remove the existing repositories block (greedy, from first to last brace)
     sed -i.bak '/repositories\s*{/,/}/d' "$build_file"
@@ -146,9 +146,9 @@ find . -name "build.gradle" -type f | while read -r build_file; do
     echo "   ✓ Updated repositories in $build_file"
 done
 
-# 6. Configure spotless in all build.gradle files
+# 6. Configure spotless in all build.gradle files except the root
 echo "6. Configuring spotless in build.gradle files..."
-find . -name "build.gradle" -type f | while read -r build_file; do
+find . -name "build.gradle" -type f ! -path "./build.gradle" | while read -r build_file; do
     echo "   Processing: $build_file"
     
     # Check if spotless exists and update or add it
@@ -206,8 +206,8 @@ echo "- ✓ Created/updated root build.gradle with required plugin"
 echo "- ✓ Updated all settings.gradle files with pluginManagement"
 echo "- ✓ Removed .github folder"
 echo "- ✓ Updated gradle.properties with required properties"
-echo "- ✓ Updated repositories in all build.gradle files"
-echo "- ✓ Configured spotless in all build.gradle files"
+echo "- ✓ Updated repositories in all build.gradle files except the root"
+echo "- ✓ Configured spotless in all build.gradle files except the root"
 echo "- ✓ Removed sonarqube plugins from all build.gradle files"
 echo ""
 echo "You can now run './gradlew build' to verify the configuration." 

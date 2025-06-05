@@ -35,8 +35,8 @@ BRANCH="$5"
 REPO_NAME=$(basename "$SOURCE_REPO" .git)
 CLONE_DIR="./cloned-${REPO_NAME}"
 
-# Extract csiid from the source repo URL (e.g., https://github.com/CitiInternal/<csiid>.somethingelse.git)
-CSIID=$(echo "$SOURCE_REPO" | sed -n 's#https://github.com/CitiInternal/\([^./]*\)\..*#\1#p')
+# Extract csiid from the destination repo URL (e.g., https://github.com/CitiInternal/<csiid>.somethingelse.git)
+DEST_CSIID=$(echo "$DESTINATION_REPO" | sed -n 's#https://github.com/CitiInternal/\([^./]*\)\..*#\1#p')
 
 echo "=== GitHub Repository Migration and Configuration ==="
 echo "Source Repository: $SOURCE_REPO"
@@ -93,7 +93,7 @@ echo "4. Applying Gradle configuration..."
 # Check if configure-gradle.sh exists in parent directory
 if [ -f "../configure-gradle.sh" ]; then
     chmod +x "../configure-gradle.sh"
-    "../configure-gradle.sh" "$CSIID"
+    "../configure-gradle.sh" "$DEST_CSIID"
     echo "   ✓ Gradle configuration applied successfully"
 else
     echo "   ❌ Error: configure-gradle.sh not found in parent directory"
