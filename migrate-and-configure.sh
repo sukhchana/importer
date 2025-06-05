@@ -113,14 +113,18 @@ else
     echo "   ✓ Changes committed successfully"
 fi
 
-# Step 6: Update remote origin to destination repository
+# Step 6: Update remote origin to destination repository and push branch
+# Ensure we are in the cloned repo directory before pushing
+cd "$CLONE_DIR"
 echo "6. Updating remote origin to destination repository..."
 DESTINATION_AUTH_URL=$(construct_auth_url "$DESTINATION_REPO" "$DESTINATION_PAT")
 git remote set-url origin "$DESTINATION_AUTH_URL"
 echo "   ✓ Remote origin updated to destination repository"
 
-# Step 7: Push branch to destination repository
-echo "7. Pushing branch to destination repository..."
+echo "7. Listing git remote origin before pushing..."
+git remote -v
+
+echo "8. Pushing branch to destination repository..."
 git push -u origin "$BRANCH"
 echo "   ✓ Branch '$BRANCH' pushed successfully to destination repository"
 
