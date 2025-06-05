@@ -123,32 +123,22 @@ mv "$temp_props" gradle.properties
 
 # 5. Update repositories in all build.gradle files
 echo "5. Updating repositories in build.gradle files..."
+REPO_BLOCK="$ARTIFACTORY_REPO_CONFIG"
 find . -name "build.gradle" -type f | while read -r build_file; do
     echo "   Processing: $build_file"
-    
-    # Create temporary file
-    temp_file=$(mktemp)
-    
-    # Process the build.gradle file
-    awk -v repo_config="$ARTIFACTORY_REPO_CONFIG" '
-    /^repositories\s*{/ {
-        print repo_config
-        brace_count = 1
-        in_repositories = 1
-        next
-    }
-    in_repositories == 1 {
-        if ($0 ~ /{/) brace_count++
-        if ($0 ~ /}/) brace_count--
-        if (brace_count == 0) {
-            in_repositories = 0
-        }
-        next
-    }
-    { print }
-    ' "$build_file" > "$temp_file"
-    
-    mv "$temp_file" "$build_file"
+    # Remove the existing repositories block (greedy, from first to last brace)
+    sed -i.bak '/repositories\s*{/,/}/d' "$build_file"
+    # Insert the new repositories block after the plugins block if it exists, else at the top
+    if grep -q "^plugins" "$build_file"; then
+        awk -v repo="$REPO_BLOCK" '
+            /^plugins/ { print; plugins=1; next }
+            plugins && /^[}]/ { print; print repo; plugins=0; next }
+            { print }
+        ' "$build_file" > "${build_file}.tmp" && mv "${build_file}.tmp" "$build_file"
+    else
+        # No plugins block, just prepend
+        (echo "$REPO_BLOCK"; cat "$build_file") > "${build_file}.tmp" && mv "${build_file}.tmp" "$build_file"
+    fi
     echo "   ✓ Updated repositories in $build_file"
 done
 
