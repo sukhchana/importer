@@ -217,3 +217,17 @@ echo "- ✓ Configured spotless in all build.gradle files"
 echo "- ✓ Removed sonarqube plugins from all build.gradle files"
 echo ""
 echo "You can now run './gradlew build' to verify the configuration." 
+
+# 8. Create pipeline.yaml
+cat > pipeline.yaml << 'EOF'
+version: v1
+tasks:
+ -ref: java-gradle-build
+  params: 
+   -name: jdk-version
+     value: '21'
+   -name: publish-artifact
+     value: 'true'
+EOF
+
+echo "- ✓ Created pipeline.yaml with build pipeline configuration" 
