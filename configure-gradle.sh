@@ -2,6 +2,9 @@
 
 set -e  # Exit on any error
 
+# Accept csiAppId as the first argument, default to "empty" if not provided
+CSI_APP_ID="${1:-empty}"
+
 echo "Starting Gradle project configuration..."
 
 # Variables for consistent configuration
@@ -114,10 +117,11 @@ add_property_if_missing() {
     fi
 }
 
-add_property_if_missing "citi.csiAppId" "empty" "$temp_props"
+add_property_if_missing "citi.csiAppId" "$CSI_APP_ID" "$temp_props"
 add_property_if_missing "citi.projectName" "pv-ingest" "$temp_props"
 add_property_if_missing "citi.ignoreWildcardImports" "true" "$temp_props"
 add_property_if_missing "citi.useErrorprone" "false" "$temp_props"
+add_property_if_missing "conventionPluginVersion" "9.1.1" "$temp_props"
 
 mv "$temp_props" gradle.properties
 
@@ -212,12 +216,32 @@ echo "You can now run './gradlew build' to verify the configuration."
 cat > pipeline.yaml << 'EOF'
 version: v1
 tasks:
- -ref: java-gradle-build
-  params: 
-   -name: jdk-version
-     value: '21'
-   -name: publish-artifact
-     value: 'true'
+  - ref: java-gradle-build
+    params: 
+      - name: jdk-version
+        value: '21'
+      - name: publish-artifact
+        value: 'true'
 EOF
 
-echo "- ✓ Created pipeline.yaml with build pipeline configuration" 
+echo "- ✓ Created pipeline.yaml with build pipeline configuration"
+
+# Ensure gradle/wrapper/gradle-wrapper.properties exists and set distributionUrl
+WRAPPER_DIR="gradle/wrapper"
+WRAPPER_PROPS="$WRAPPER_DIR/gradle-wrapper.properties"
+DISTRIBUTION_URL="https://www.artifactrepository.citigroup.net/artifactory/generic-gradle-distributions-remote/gradle-8.14.bin.zip"
+
+mkdir -p "$WRAPPER_DIR"
+if [ ! -f "$WRAPPER_PROPS" ]; then
+    echo "distributionUrl=$DISTRIBUTION_URL" > "$WRAPPER_PROPS"
+    echo "   ✓ Created $WRAPPER_PROPS with distributionUrl"
+else
+    if grep -q '^distributionUrl=' "$WRAPPER_PROPS"; then
+        sed -i.bak "s|^distributionUrl=.*$|distributionUrl=$DISTRIBUTION_URL|" "$WRAPPER_PROPS"
+        rm -f "$WRAPPER_PROPS.bak"
+        echo "   ✓ Updated distributionUrl in $WRAPPER_PROPS"
+    else
+        echo "distributionUrl=$DISTRIBUTION_URL" >> "$WRAPPER_PROPS"
+        echo "   ✓ Added distributionUrl to $WRAPPER_PROPS"
+    fi
+fi 
