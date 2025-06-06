@@ -10,7 +10,7 @@ echo "Starting Gradle project configuration..."
 # Variables for consistent configuration
 ARTIFACTORY_REPO_CONFIG='repositories {
   maven {
-    url providers.gradleProperty('"'"'citi.artifactoryBaseUrl'"'"').orElse('"'"'https://www.artifactory.citigroup.net/artifactory'"'"').map( u -> u + '"'"'/maven-prod-rcmd'"'"')
+    url providers.gradleProperty('"'"'citi.artifactoryBaseUrl'"'"').orElse('"'"'https://www.artifactrepository.citigroup.net/artifactory'"'"').map( u -> u + '"'"'/maven-prod-rcmd'"'"')
 
     credentials {
       username = citiEarUser
@@ -22,15 +22,14 @@ ARTIFACTORY_REPO_CONFIG='repositories {
 PLUGIN_MANAGEMENT_CONFIG='pluginManagement {
   repositories {
     maven {
-      url providers.gradleProperty('"'"'citi.artifactoryBaseUrl'"'"').orElse('"'"'https://www.artifactory.citigroup.net/artifactory'"'"').map( u -> u + '"'"'/maven-prod-rcmd'"'"')
+      url providers.gradleProperty('"'"'citi.artifactoryBaseUrl'"'"').orElse('"'"'https://www.artifactrepository.citigroup.net/artifactory'"'"').map( u -> u + '"'"'/maven-prod-rcmd'"'"')
 
       credentials {
         username = citiEarUser
         password = citiEarPassword
       }
     }
-  }
-
+  
   plugins {
     id '"'"'com.citi.171981.java.convention'"'"' version conventionPluginVersion
   }
@@ -229,7 +228,7 @@ echo "- ✓ Created pipeline.yaml with build pipeline configuration"
 # Ensure gradle/wrapper/gradle-wrapper.properties exists and set distributionUrl
 WRAPPER_DIR="gradle/wrapper"
 WRAPPER_PROPS="$WRAPPER_DIR/gradle-wrapper.properties"
-DISTRIBUTION_URL="https://www.artifactrepository.citigroup.net/artifactory/generic-gradle-distributions-remote/gradle-8.14.bin.zip"
+DISTRIBUTION_URL="https://www.artifactrepository.citigroup.net/artifactory/generic-gradle-distributions-remote/gradle-8.14-bin.zip"
 
 mkdir -p "$WRAPPER_DIR"
 if [ ! -f "$WRAPPER_PROPS" ]; then
