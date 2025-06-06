@@ -4,23 +4,24 @@ set -e  # Exit on any error
 
 # Function to display usage
 usage() {
-    echo "Usage: $0 <sourceRepo> <destinationRepo> <sourcePAT> <destinationPAT> <branch>"
+    echo "Usage: $0 <sourceRepo> <destinationRepo> <sourcePAT> <destinationPAT> <branch> [<targetBranch>]"
     echo ""
     echo "Parameters:"
     echo "  sourceRepo      - Source GitHub repository URL (https://github.com/user/repo.git)"
     echo "  destinationRepo - Destination GitHub repository URL (https://github.com/user/repo.git)"
     echo "  sourcePAT       - Personal Access Token for source repository"
     echo "  destinationPAT  - Personal Access Token for destination repository"
-    echo "  branch          - Branch name to work with and push"
+    echo "  branch          - Branch name to work with and push (source branch)"
+    echo "  targetBranch    - (Optional) Target branch name for destination repo (defaults to source branch name)"
     echo ""
     echo "Example:"
-    echo "  $0 https://github.com/user/source-repo.git https://github.com/user/dest-repo.git ghp_sourcetoken ghp_desttoken main"
+    echo "  $0 https://github.com/user/source-repo.git https://github.com/user/dest-repo.git ghp_sourcetoken ghp_desttoken main feature-branch"
     exit 1
 }
 
-# Check if all required parameters are provided
-if [ $# -ne 5 ]; then
-    echo "Error: Missing required parameters."
+# Check if required parameters are provided
+if [ $# -lt 5 ] || [ $# -gt 6 ]; then
+    echo "Error: Invalid number of parameters."
     usage
 fi
 
@@ -30,6 +31,11 @@ DESTINATION_REPO="$2"
 SOURCE_PAT="$3"
 DESTINATION_PAT="$4"
 BRANCH="$5"
+if [ $# -eq 6 ]; then
+    TARGET_BRANCH="$6"
+else
+    TARGET_BRANCH="$BRANCH"
+fi
 
 # Extract repository name from URL for directory naming
 REPO_NAME=$(basename "$SOURCE_REPO" .git)
@@ -41,7 +47,8 @@ DEST_CSIID=$(echo "$DESTINATION_REPO" | sed -n 's#https://github.com/CitiInterna
 echo "=== GitHub Repository Migration and Configuration ==="
 echo "Source Repository: $SOURCE_REPO"
 echo "Destination Repository: $DESTINATION_REPO"
-echo "Branch: $BRANCH"
+echo "Source Branch: $BRANCH"
+echo "Target Branch: $TARGET_BRANCH"
 echo "Clone Directory: $CLONE_DIR"
 echo ""
 
@@ -128,14 +135,18 @@ if [ "$BRANCH" = "main" ]; then
     echo "   Branch is 'main', renaming to 'main_test' before push."
     git branch -m main_test
     BRANCH="main_test"
+    # If the user did not specify a target branch, update TARGET_BRANCH as well
+    if [ $# -ne 6 ]; then
+        TARGET_BRANCH="main_test"
+    fi
 fi
 
 echo "7. Listing git remote origin before pushing..."
 git remote -v
 
 echo "8. Pushing branch to destination repository..."
-git push -u origin "$BRANCH"
-echo "   ✓ Branch '$BRANCH' pushed successfully to destination repository"
+git push -u origin "$BRANCH:$TARGET_BRANCH"
+echo "   ✓ Branch '$BRANCH' pushed successfully to destination repository as '$TARGET_BRANCH'"
 
 echo ""
 echo "✅ Migration and configuration complete!"
@@ -144,7 +155,7 @@ echo "Summary:"
 echo "- ✓ Cloned source repository: $SOURCE_REPO"
 echo "- ✓ Applied Gradle configuration using configure-gradle.sh"
 echo "- ✓ Updated remote origin to: $DESTINATION_REPO"
-echo "- ✓ Pushed branch '$BRANCH' to destination repository"
+echo "- ✓ Pushed branch '$BRANCH' to destination repository as '$TARGET_BRANCH'"
 echo ""
 echo "The repository is now available at: $DESTINATION_REPO"
 echo "Working directory: $(pwd)" 
