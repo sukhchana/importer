@@ -106,7 +106,10 @@ add_property_if_missing() {
     local prop_file="$3"
     
     if ! grep -q "^${prop_name}=" "$prop_file"; then
+        # Ensure a blank line before and after the property
+        echo "" >> "$prop_file"
         echo "${prop_name}=${prop_value}" >> "$prop_file"
+        echo "" >> "$prop_file"
         echo "   ✓ Added ${prop_name}=${prop_value}"
     else
         # Update existing property
