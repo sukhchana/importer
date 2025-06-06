@@ -154,7 +154,12 @@ find . -name "build.gradle" -type f ! -path "./build.gradle" | while read -r bui
     echo "   Processing: $build_file"
     
     # Skip if plugins block contains id 'java-gradle-plugin'
-    if awk '/plugins\s*{/{inblock=1} inblock && /}/{inblock=0} inblock && /id \'java-gradle-plugin\'/{found=1} END{exit !found}' "$build_file"; then
+    if awk '
+/plugins[[:space:]]*{/ {inblock=1}
+inblock && /}/ {inblock=0}
+inblock && /id '\''java-gradle-plugin'\''/ {found=1}
+END {exit !found}
+' "$build_file"; then
         echo "   ✓ Skipped spotless configuration in $build_file (contains id 'java-gradle-plugin')"
         continue
     fi
